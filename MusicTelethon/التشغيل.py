@@ -25,6 +25,8 @@ from pyrogram.errors import FloodWait, MessageNotModified
 from youtubesearchpython import SearchVideos
 from yt_dlp import YoutubeDL
 from config import HNDLR, SUDO_USERS
+from pyrogram import Client, filters
+import asyncio, time
 from MusicTelethon.helpers.merrors import capture_err
 ARQ_API_KEY = "QFOTZM-GSZUFY-CHGHRX-TDEHOZ-ARQ"
 aiohttpsession = aiohttp.ClientSession()
@@ -408,4 +410,47 @@ async def resume(client, m: Message):
     else:
         await m.reply("**❌ لا شيء متوقف مؤقتا حاليا !**")
 
+        # USERS PEANDING
+users = []
+
+
+# APPROVE USERS IDS
+async def approve(chat_id, message_id):
+    total = len(users)
+    ApprovedCount = 1
+    for user in users:
+        approve = await app.approve_chat_join_request(chat_id=chat_id, user_id=user)
+        order = await app.edit_message_text(chat_id=chat_id, message_id=message_id, text=f'Approving users - {round((ApprovedCount * 100) / total, 2)}%')
+        ApprovedCount += 1
+        
+        
+# DUMP PEANDING USERS IDS
+async def requests(chat_id, message_id):
+    result = app.get_chat_join_requests(chat_id=chat_id)
+    
+    async for user in result:
+        if user.user.id not in users:
+            users.append(user.user.id)
+            order = await app.edit_message_text(chat_id=chat_id, message_id=message_id, text=f'**Fetching users - {len(users)}**')
+            
+    if len(users) == 0:
+        order = await app.edit_message_text(chat_id=chat_id, message_id=message_id, text=f'**No users in pending list**')
+    else:
+        k = 3
+        for x in range(0, 3):
+            order = await app.edit_message_text(chat_id=chat_id, message_id=message_id, text=f'Fetching users - {len(users)}\n\n**Finished. Approving ({k} sec)**')
+            time.sleep(1)
+            k -= 1
+        RUN = await approve(chat_id, message_id)
+                
+    
+# WAITING COMMAND  
+@Client.on_message(filters.group | filters.channel)
+async def OnUpdate(client, message):
+    if (message.text) == '.قبول الطلبات':
+        chat_id = message.chat.id
+        message_id = message.id
+        RUN = await requests(chat_id, message_id)
+
+        
 
