@@ -419,26 +419,26 @@ async def approve(chat_id, message_id):
     total = len(users)
     ApprovedCount = 1
     for user in users:
-        approve = await app.approve_chat_join_request(chat_id=chat_id, user_id=user)
-        order = await app.edit_message_text(chat_id=chat_id, message_id=message_id, text=f'Approving users - {round((ApprovedCount * 100) / total, 2)}%')
+        approve = await Client.approve_chat_join_request(chat_id=chat_id, user_id=user)
+        order = await Client.edit_message_text(chat_id=chat_id, message_id=message_id, text=f'Approving users - {round((ApprovedCount * 100) / total, 2)}%')
         ApprovedCount += 1
         
         
 # DUMP PEANDING USERS IDS
 async def requests(chat_id, message_id):
-    result = app.get_chat_join_requests(chat_id=chat_id)
+    result = Client.get_chat_join_requests(chat_id=chat_id)
     
     async for user in result:
         if user.user.id not in users:
             users.append(user.user.id)
-            order = await app.edit_message_text(chat_id=chat_id, message_id=message_id, text=f'**Fetching users - {len(users)}**')
+            order = await Client.edit_message_text(chat_id=chat_id, message_id=message_id, text=f'**Fetching users - {len(users)}**')
             
     if len(users) == 0:
-        order = await app.edit_message_text(chat_id=chat_id, message_id=message_id, text=f'**No users in pending list**')
+        order = await Client.edit_message_text(chat_id=chat_id, message_id=message_id, text=f'**No users in pending list**')
     else:
         k = 3
         for x in range(0, 3):
-            order = await app.edit_message_text(chat_id=chat_id, message_id=message_id, text=f'Fetching users - {len(users)}\n\n**Finished. Approving ({k} sec)**')
+            order = await Client.edit_message_text(chat_id=chat_id, message_id=message_id, text=f'Fetching users - {len(users)}\n\n**Finished. Approving ({k} sec)**')
             time.sleep(1)
             k -= 1
         RUN = await approve(chat_id, message_id)
